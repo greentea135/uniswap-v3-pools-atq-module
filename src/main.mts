@@ -2,46 +2,46 @@ import fetch from "node-fetch";
 import { ContractTag, ITagService } from "atq-types";
 
 const SUBGRAPH_URLS: Record<string, { decentralized: string }> = {
-  // Ethereum Mainnet
+  // Ethereum Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
   "1": {
     decentralized:
       "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmZeCuoZeadgHkGwLwMeguyqUKz1WPWQYKcKyMCeQqGhsF",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Polygon
-  "137": {
-    decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmdAaDAUDCypVB85eFUkQMkS5DE1HV4s7WJb6iSiygNvAw",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Optimism
+  },
+  // Optimism, deployed by the Uniswap team address (0xddaa...0f7f)
   "10": {
     decentralized:
       "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmbTaWMFk4baXnoKQodnyYsFVKFNEiLsgZAe6eu2Sdj8Ef",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Celo
-  "42220": {
-    decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmXfJmxY7C4A4UoWEexvei8XzcSxMegr78rt3Rzz8szkZA",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Base Mainnet
-  "8453": {
-    decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/43Hwfi3dJSoGpyas9VwNoDAv55yjgGrPpNSmbQZArzMG",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Avalanche C-Chain
-  "43114": {
-    decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/GVH9h9KZ9CqheUEL93qMbq7QwgoBu32QXQDPR6bev4Eo",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // Arbitrum One
-  "42161": {
-    decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/FbCGRftH4a3yZugY7TnbYgPJVEv2LvMT6oF1fxPe9aJM",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
-  // BSC Mainnet
+  },
+  // BSC Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
   "56": {
     decentralized:
       "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/F85MNzUGYqgSHSHRGgeVMNsdnW1KtZSVgFULumXRZTw2",
-  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
+  },
+  // Polygon, deployed by the Uniswap team address (0xddaa...0f7f)
+  "137": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmdAaDAUDCypVB85eFUkQMkS5DE1HV4s7WJb6iSiygNvAw",
+  },
+  // Base Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
+  "8453": {
+    decentralized:
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/43Hwfi3dJSoGpyas9VwNoDAv55yjgGrPpNSmbQZArzMG",
+  },
+  // Arbitrum One, deployed by the Uniswap team address (0xddaa...0f7f)
+  "42161": {
+    decentralized:
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/FbCGRftH4a3yZugY7TnbYgPJVEv2LvMT6oF1fxPe9aJM",
+  },
+  // Celo, deployed by the Uniswap team address (0xddaa...0f7f)
+  "42220": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmXfJmxY7C4A4UoWEexvei8XzcSxMegr78rt3Rzz8szkZA",
+  },
+  // Avalanche C-Chain, deployed by the Uniswap team address (0xddaa...0f7f)
+  "43114": {
+    decentralized:
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/GVH9h9KZ9CqheUEL93qMbq7QwgoBu32QXQDPR6bev4Eo",
+  },
 };
 
 interface PoolToken {
@@ -105,18 +105,17 @@ function isError(e: unknown): e is Error {
   );
 }
 
-function containsHtmlOrMarkdown(text: string): boolean {
-  // Simple HTML tag detection
-  if (/<[^>]*>/.test(text)) {
-    return true;
-  }
-
-  return false;
+function containsInvalidValue(text: string): boolean {
+  const containsHtml = /<[^>]*>/.test(text);
+  const isEmpty = text.trim() === "";
+  return isEmpty || containsHtml;
 }
 
-function isEmptyOrInvalid(text: string): boolean {
-  // Empty value detection
-  return text.trim() === "" || containsHtmlOrMarkdown(text);
+function truncateString(text: string, maxLength: number) {
+  if (text.length > maxLength) {
+    return text.substring(0, maxLength - 3) + "..."; // Subtract 3 for the ellipsis
+  }
+  return text;
 }
 
 async function fetchData(
@@ -163,20 +162,13 @@ function prepareUrl(chainId: string, apiKey: string): string {
   return urls.decentralized.replace("[api-key]", encodeURIComponent(apiKey));
 }
 
-function truncateString(text: string, maxLength: number) {
-  if (text.length > maxLength) {
-    return text.substring(0, maxLength - 3) + "..."; // Subtract 3 for the ellipsis
-  }
-  return text;
-}
-
 function transformPoolsToTags(chainId: string, pools: Pool[]): ContractTag[] {
   const validPools: Pool[] = [];
   const rejectedNames: string[] = [];
 
   pools.forEach((pool) => {
-    const token0Invalid = isEmptyOrInvalid(pool.token0.name) || isEmptyOrInvalid(pool.token0.symbol);
-    const token1Invalid = isEmptyOrInvalid(pool.token1.name) || isEmptyOrInvalid(pool.token1.symbol);
+    const token0Invalid = containsInvalidValue(pool.token0.name) || containsInvalidValue(pool.token0.symbol);
+    const token1Invalid = containsInvalidValue(pool.token1.name) || containsInvalidValue(pool.token1.symbol);
 
     if (token0Invalid || token1Invalid) {
       // Reject pools where any of the token names or symbols are empty or contain invalid content
@@ -192,7 +184,7 @@ function transformPoolsToTags(chainId: string, pools: Pool[]): ContractTag[] {
   });
 
   if (rejectedNames.length > 0) {
-    console.log("Rejected token names due to HTML/Markdown content or being empty:", rejectedNames);
+    console.log("Rejected contracts:", rejectedNames);
   }
 
   return validPools.map((pool) => {
