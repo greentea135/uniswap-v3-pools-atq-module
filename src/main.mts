@@ -2,26 +2,46 @@ import fetch from "node-fetch";
 import { ContractTag, ITagService } from "atq-types";
 
 const SUBGRAPH_URLS: Record<string, { decentralized: string }> = {
+  // Ethereum Mainnet
+  "1": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmZeCuoZeadgHkGwLwMeguyqUKz1WPWQYKcKyMCeQqGhsF",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
+  // Polygon
+  "137": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmdAaDAUDCypVB85eFUkQMkS5DE1HV4s7WJb6iSiygNvAw",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
+  // Optimism
+  "10": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmbTaWMFk4baXnoKQodnyYsFVKFNEiLsgZAe6eu2Sdj8Ef",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
+  // Celo
+  "42220": {
+    decentralized:
+      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmXfJmxY7C4A4UoWEexvei8XzcSxMegr78rt3Rzz8szkZA",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
   // Base Mainnet
   "8453": {
     decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/43Hwfi3dJSoGpyas9VwNoDAv55yjgGrPpNSmbQZArzMG", // Base deployment
-  },
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/43Hwfi3dJSoGpyas9VwNoDAv55yjgGrPpNSmbQZArzMG",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
   // Avalanche C-Chain
   "43114": {
     decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/GVH9h9KZ9CqheUEL93qMbq7QwgoBu32QXQDPR6bev4Eo", // Avalanche C-Chain deployment
-  },
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/GVH9h9KZ9CqheUEL93qMbq7QwgoBu32QXQDPR6bev4Eo",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
   // Arbitrum One
   "42161": {
     decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/FbCGRftH4a3yZugY7TnbYgPJVEv2LvMT6oF1fxPe9aJM", // Arbitrum One deployment
-  },
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/FbCGRftH4a3yZugY7TnbYgPJVEv2LvMT6oF1fxPe9aJM",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
   // BSC Mainnet
   "56": {
     decentralized:
-      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/F85MNzUGYqgSHSHRGgeVMNsdnW1KtZSVgFULumXRZTw2", // BSC deployment
-  },
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/F85MNzUGYqgSHSHRGgeVMNsdnW1KtZSVgFULumXRZTw2",
+  }, // Deployed by the Uniswap team address (0xddaa...0f7f)
 };
 
 interface PoolToken {
@@ -45,7 +65,8 @@ interface GraphQLResponse {
   data?: GraphQLData;
   errors?: { message: string }[]; // Assuming the API might return errors in this format
 }
-//defining headers for query
+
+// defining headers for query
 const headers: Record<string, string> = {
   "Content-Type": "application/json",
   Accept: "application/json",
@@ -91,6 +112,11 @@ function containsHtmlOrMarkdown(text: string): boolean {
   }
 
   return false;
+}
+
+function isEmptyOrInvalid(text: string): boolean {
+  // Empty value detection
+  return text.trim() === "" || containsHtmlOrMarkdown(text);
 }
 
 async function fetchData(
@@ -144,58 +170,31 @@ function truncateString(text: string, maxLength: number) {
   return text;
 }
 
-// Local helper function used by returnTags
-interface Token {
-  id: string;
-  name: string;
-  symbol: string;
-}
-
-interface Pool {
-  id: string;
-  createdAtTimestamp: number;
-  token0: Token;
-  token1: Token;
-}
-
 function transformPoolsToTags(chainId: string, pools: Pool[]): ContractTag[] {
-  // First, filter and log invalid entries
   const validPools: Pool[] = [];
   const rejectedNames: string[] = [];
 
   pools.forEach((pool) => {
-    const token0Invalid =
-      containsHtmlOrMarkdown(pool.token0.name) ||
-      containsHtmlOrMarkdown(pool.token0.symbol);
-    const token1Invalid =
-      containsHtmlOrMarkdown(pool.token1.name) ||
-      containsHtmlOrMarkdown(pool.token1.symbol);
+    const token0Invalid = isEmptyOrInvalid(pool.token0.name) || isEmptyOrInvalid(pool.token0.symbol);
+    const token1Invalid = isEmptyOrInvalid(pool.token1.name) || isEmptyOrInvalid(pool.token1.symbol);
 
     if (token0Invalid || token1Invalid) {
+      // Reject pools where any of the token names or symbols are empty or contain invalid content
       if (token0Invalid) {
-        rejectedNames.push(
-          pool.token0.name + ", Symbol: " + pool.token0.symbol
-        );
+        rejectedNames.push(`Contract: ${pool.id} rejected due to invalid token symbol/name - Token0: ${pool.token0.name}, Symbol: ${pool.token0.symbol}`);
       }
       if (token1Invalid) {
-        rejectedNames.push(
-          pool.token1.name + ", Symbol: " + pool.token1.symbol
-        );
+        rejectedNames.push(`Contract: ${pool.id} rejected due to invalid token symbol/name - Token1: ${pool.token1.name}, Symbol: ${pool.token1.symbol}`);
       }
     } else {
       validPools.push(pool);
     }
   });
 
-  // Log all rejected names
   if (rejectedNames.length > 0) {
-    console.log(
-      "Rejected token names due to HTML/Markdown content:",
-      rejectedNames
-    );
+    console.log("Rejected token names due to HTML/Markdown content or being empty:", rejectedNames);
   }
 
-  // Process valid pools into tags
   return validPools.map((pool) => {
     const maxSymbolsLength = 45;
     const symbolsText = `${pool.token0.symbol}/${pool.token1.symbol}`;
@@ -211,7 +210,7 @@ function transformPoolsToTags(chainId: string, pools: Pool[]): ContractTag[] {
   });
 }
 
-//The main logic for this module
+// The main logic for this module
 class TagService implements ITagService {
   // Using an arrow function for returnTags
   returnTags = async (
@@ -255,3 +254,4 @@ const tagService = new TagService();
 
 // Exporting the returnTags method directly
 export const returnTags = tagService.returnTags;
+
