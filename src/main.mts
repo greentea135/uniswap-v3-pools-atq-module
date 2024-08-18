@@ -5,12 +5,12 @@ const SUBGRAPH_URLS: Record<string, { decentralized: string }> = {
   // Ethereum Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
   "1": {
     decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmZeCuoZeadgHkGwLwMeguyqUKz1WPWQYKcKyMCeQqGhsF",
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV",
   },
   // Optimism, deployed by the Uniswap team address (0xddaa...0f7f)
   "10": {
     decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmbTaWMFk4baXnoKQodnyYsFVKFNEiLsgZAe6eu2Sdj8Ef",
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/Cghf4LfVqPiFw6fp6Y5X5Ubc8UpmUhSfJL82zwiBFLaj",
   },
   // BSC Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
   "56": {
@@ -20,7 +20,7 @@ const SUBGRAPH_URLS: Record<string, { decentralized: string }> = {
   // Polygon, deployed by the Uniswap team address (0xddaa...0f7f)
   "137": {
     decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmdAaDAUDCypVB85eFUkQMkS5DE1HV4s7WJb6iSiygNvAw",
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/3hCPRGf4z88VC5rsBKU5AA9FBBq5nF3jbKJG7VZCbhjm",
   },
   // Base Mainnet, deployed by the Uniswap team address (0xddaa...0f7f)
   "8453": {
@@ -35,7 +35,7 @@ const SUBGRAPH_URLS: Record<string, { decentralized: string }> = {
   // Celo, deployed by the Uniswap team address (0xddaa...0f7f)
   "42220": {
     decentralized:
-      "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/deployments/id/QmXfJmxY7C4A4UoWEexvei8XzcSxMegr78rt3Rzz8szkZA",
+      "https://gateway.thegraph.com/api/[api-key]/subgraphs/id/ESdrTJ3twMwWVoQ1hUE2u7PugEHX3QkenudD6aXCkDQ4",
   },
   // Avalanche C-Chain, deployed by the Uniswap team address (0xddaa...0f7f)
   "43114": {
